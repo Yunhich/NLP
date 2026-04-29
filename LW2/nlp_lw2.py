@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+
+# !pip install gensim
+
+import gensim
+import re
+
+# Загружаем модель
+word2vec = gensim.models.KeyedVectors.load_word2vec_format("cbow.txt", binary=False)
+
+# pos = ["король_NOUN", "посланник_NOUN"]
+# neg = ["титул_NOUN"]
+
+# pos = ["король_NOUN", "дипломат_NOUN"]
+# neg = ["титул_NOUN"]
+
+# pos = ["король_NOUN", "чиновник_NOUN"]
+# neg = ["титул_NOUN"]
+
+pos = ["король_NOUN"]
+neg = ["корона_NOUN"]
+
+dist = word2vec.most_similar(positive=pos, negative=neg, topn=20) # topn=20, чтобы в топ10 было больше существительных
+
+print("Результаты:")
+for w, score in dist:
+    print(w, score)
+
+# Фильтрация: только существительные (слова с _NOUN)
+print("\nТолько существительные:")
+pat = re.compile("(.*)_NOUN")
+for w, score in dist:
+    e = pat.match(w)
+    if e:
+        print(e.group(1), score)
+
+vars = [
+    (["герцог_NOUN"], ["король_NOUN"]),
+    (["герцог_NOUN", "посол_NOUN"], ["чиновник_NOUN"]),
+    (["герцог_NOUN"], ["аристократ_NOUN"]),
+    (["посол_NOUN"], ["дипломат_NOUN"]),
+    (["герцог_NOUN", "посол_NOUN"], []),
+]
+
+for pos, neg in vars:
+    print(f"\nПозитивные: {pos}, Негативные: {neg}")
+    dist = word2vec.most_similar(positive=pos, negative=neg, topn=10)
+    for w, score in dist:
+        print(w, score)
